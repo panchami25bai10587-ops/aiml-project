@@ -1,0 +1,168 @@
+# =================================================================
+# 1. GLOBAL FUSION MENU DATA 
+# =================================================================
+MENU = {
+    "Indian Starters": {
+        "1. Paneer Tikka": 240.0, "2. Chicken 65": 280.0,
+        "3. Masala Papad": 45.0,  "4. Veg Samosa (2pc)": 60.0,
+        "5. Tandoori Prawns": 450.0, "6. Hara Bhara Kabab": 190.0,
+        "7. Chicken Seekh Kabab": 320.0, "8. Fish Amritsari": 380.0
+    },
+    "Western Starters": {
+        "9. French Fries": 120.0, "10. Garlic Bread w/ Cheese": 180.0,
+        "11. Caesar Salad": 210.0, "12. Chicken Nuggets (6pc)": 220.0,
+        "13. Loaded Nachos": 250.0, "14. Bruschetta": 190.0,
+        "15. BBQ Chicken Wings": 310.0, "16. Mozzarella Sticks": 240.0
+    },
+    "Indian Main Course": {
+        "17. Butter Chicken": 350.0, "18. Dal Makhani": 220.0,
+        "19. Paneer Lababdar": 260.0, "20. Hyderabadi Biryani": 320.0,
+        "21. Mutton Rogan Josh": 480.0, "22. Malai Kofta": 290.0,
+        "23. Kadhai Chicken": 340.0, "24. Veg Jalfrezi": 230.0
+    },
+    "Western Main Course": {
+        "25. Margherita Pizza": 290.0, "26. Veggie Burger": 210.0,
+        "27. White Sauce Pasta": 280.0, "28. Grilled Sandwich": 150.0,
+        "29. Fish and Chips": 420.0, "30. Pink Sauce Ravioli": 350.0,
+        "31. Chicken Steak": 480.0, "32. Mushroom Risotto": 390.0
+    },
+    "Desserts": {
+        "33. Gulab Jamun": 80.0,   "34. Chocolate Brownie": 160.0,
+        "35. Apple Pie": 190.0,    "36. New York Cheesecake": 240.0,
+        "37. Rasmalai (2pc)": 100.0, "38. Tiramisu": 280.0,
+        "39. Ice Cream Scoop": 70.0, "40. Gajar Halwa": 120.0
+    },
+    "Beverages": {
+        "41. Masala Chai": 30.0,   "42. Coca Cola/Pepsi": 60.0,
+        "43. Cold Coffee": 110.0,  "44. Fresh Lime Soda": 80.0,
+        "45. Virgin Mojito": 140.0, "46. Oreo Milkshake": 180.0,
+        "47. Hot Chocolate": 130.0, "48. Mineral Water": 40.0
+    }
+}
+
+# Financial Rules
+GST_RATE = 0.05          # 5% GST
+SERVICE_CHARGE = 0.10    # 10% Service Charge
+DISCOUNT_THRESHOLD = 2000 # Bills above 2k get a discount
+DISCOUNT_RATE = 0.10     # 10% Discount
+
+# =================================================================
+# 2. INTERFACE & SEARCH LOGIC
+# =================================================================
+def show_pos_menu():
+    print("\n" + "╔" + "═"*55 + "╗")
+    print("║" + " "*15 + "GLOBAL FUSION RESTAURANT" + " "*16 + "║")
+    print("║" + " "*17 + "POS BILLING SYSTEM" + " "*20 + "║")
+    print("╚" + "═"*55 + "╝")
+    
+    for category, items in MENU.items():
+        print(f"\n>> {category.upper()}")
+        print("-" * 57)
+        for item, price in items.items():
+            print(f"  {item:35} ₹{price:>8.2f}")
+    print("\n" + "═"*57)
+
+def get_menu_item(item_id):
+    """Search for item by ID number (1-48)."""
+    for category in MENU.values():
+        for full_name, price in category.items():
+            if full_name.startswith(str(item_id) + "."):
+                name = full_name.split(". ")[1]
+                return name, price
+    return None, None
+
+# =================================================================
+# 3. TRANSACTION ENGINE
+# =================================================================
+def start_transaction():
+    current_bill = []
+    show_pos_menu()
+    
+    print("\n[CONTROLS]: Enter Item # | '0' to Generate Bill | '99' to Clear")
+
+    while True:
+        entry = input("\nSelect Item ID: ").strip()
+        
+        if entry == '0':
+            break
+        elif entry == '99':
+            current_bill = []
+            print("(!) Cart Cleared.")
+            continue
+            
+        try:
+            choice = int(entry)
+            name, price = get_menu_item(choice)
+            
+            if name:
+                qty_str = input(f"   Enter quantity for [{name}]: ")
+                qty = int(qty_str) if qty_str.isdigit() and int(qty_str) > 0 else 1
+                
+                # Check for existing items in bill to update quantity
+                found = False
+                for item in current_bill:
+                    if item['name'] == name:
+                        item['qty'] += qty
+                        item['total'] = item['qty'] * item['unit']
+                        found = True
+                        break
+                
+                if not found:
+                    current_bill.append({
+                        "name": name, "unit": price, 
+                        "qty": qty, "total": price * qty
+                    })
+                print(f"   (+) Added {qty} {name}(s) to bill.")
+            else:
+                print("   (!) Invalid ID. Refer to menu numbers (1-48).")
+        except ValueError:
+            print("   (!) Input must be a number.")
+
+    if current_bill:
+        finalize_invoice(current_bill)
+    else:
+        print("Empty bill. Session closed.")
+
+# =================================================================
+# 4. FINAL INVOICE GENERATION
+# =================================================================
+def finalize_invoice(items):
+    subtotal = sum(i['total'] for i in items)
+    
+    # Calculate Discounts
+    discount_val = 0
+    if subtotal > DISCOUNT_THRESHOLD:
+        discount_val = subtotal * DISCOUNT_RATE
+        
+    net_after_discount = subtotal - discount_val
+    gst_val = net_after_discount * GST_RATE
+    service_val = net_after_discount * SERVICE_CHARGE
+    grand_total = net_after_discount + gst_val + service_val
+
+    print("\n\n" + "█"*57)
+    print(" " * 18 + "OFFICIAL TAX INVOICE")
+    print("█"*57)
+    print(f"{'DESCRIPTION':28} {'QTY':>4} {'PRICE':>10} {'TOTAL':>10}")
+    print("-" * 57)
+    
+    for i in items:
+        print(f"{i['name']:28} {i['qty']:>4} {i['unit']:>10.2f} {i['total']:>10.2f}")
+    
+    print("-" * 57)
+    print(f"{'ITEM TOTAL (SUBTOTAL):':43} ₹{subtotal:>10.2f}")
+    
+    if discount_val > 0:
+        print(f"{'LOYALTY DISCOUNT (10%):':43} -₹{discount_val:>9.2f}")
+        print(f"{'NET AMOUNT:':43} ₹{net_after_discount:>10.2f}")
+    
+    print(f"{'GST (5%):':43} ₹{gst_val:>10.2f}")
+    print(f"{'SERVICE CHARGE (10%):':43} ₹{service_val:>10.2f}")
+    print("═" * 57)
+    print(f"{'GRAND TOTAL (ROUNDED):':43} ₹{round(grand_total):>10}")
+    print("═" * 57)
+    print("\n      Thank you for choosing Global Fusion!      ")
+    print("          Please visit us again soon.            ")
+    print("█"*57 + "\n")
+
+if __name__ == "__main__":
+    start_transaction()
