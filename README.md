@@ -1,4 +1,4 @@
-🛠️ Deep Dive: How the System Works
+# 🛠️ Deep Dive: How the System Works
 The Global Fusion POS operates on a Linear Transaction Lifecycle. Here is the technical breakdown of the process:
 
 1. Data Structure Layer
@@ -24,7 +24,7 @@ If you add Item #1 (Paneer Tikka) with Qty 2, and then add it again with Qty 3, 
 
 This prevents the final receipt from looking messy with repeated lines.
 
-➕ How to Add/Modify Details (Maintenance)
+# ➕ How to Add/Modify Details (Maintenance)
 If you want to expand the menu or change prices, follow these "Safe-Edit" steps:
 
 Adding a New Item
@@ -43,7 +43,7 @@ Change GST_RATE = 0.05 to 0.18 (for 18%).
 
 The rest of the code will automatically recalculate all totals based on this one change.
 
-🚫 Common Mistakes (The "Don't Do" List)
+# 🚫 Common Mistakes (The "Don't Do" List)
 To keep the code running without crashes (bugs), avoid these common pitfalls:
 
 1. Breaking the String Format
@@ -78,7 +78,7 @@ That is a great call. Testing is what separates a "student project" from "produc
 
 ---
 
-## 🧪 Bulletproof Testing & QA (Quality Assurance)
+# 🧪 Bulletproof Testing & QA (Quality Assurance)
 
 Before deploying the POS system for live use, it must pass the **"Stress & Edge Case"** suite. These tests ensure that the math remains accurate and the program remains stable even when the user makes mistakes.
 
